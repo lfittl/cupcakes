@@ -1,42 +1,34 @@
 #!/bin/bash
 
-while true
-do
-    COMMAND=`ps -Ao pid,pcpu,bsdtime,comm | sort -nrk2 | head -1`
-    PID=`echo $COMMAND | awk '{print $1}'`
-    PCPU=`echo $COMMAND | awk '{print $2}'`
-    PCPU=${PCPU%%.*}
-    PTIME=`echo $COMMAND | awk '{print $3}'`
-    PTIME=${PTIME%%:*}
-    PCMD=`echo $COMMAND | awk '{print $4}'`
-    
-    MAXUSE=80
-	MAXHOURS=1
-	
-	if [ $PCPU -ge $MAXUSE ] && [ $PTIME -ge $MAXHOURS ];
-	then
-	    sleep 20
-	
-        NEWCOMMAND=`ps -Ao pid,pcpu,bsdtime,comm | sort -nrk2 | head -10 | grep $PID`
-		NEWPCPU=`echo $NEWCOMMAND | awk '{print $2}'`
-		NEWPCPU=${NEWPCPU%%.*}
-		NEWTIME=`echo $NEWCOMMAND | awk '{print $3}'`
-		NEWTIME=${NEWTIME%%:*}
+COMMAND=`ps -Ao pid,pcpu,bsdtime,comm | grep ruby | sort -nrk2 | head -1`
+PID=`echo $COMMAND | awk '{print $1}'`
+PCPU=`echo $COMMAND | awk '{print $2}'`
+PCPU=${PCPU%%.*}
+PTIME=`echo $COMMAND | awk '{print $3}'`
+PTIME=${PTIME%%:*}
+PCMD=`echo $COMMAND | awk '{print $4}'`
 
-		if [ $NEWPCPU -ge $MAXUSE ] && [ $NEWTIME -ge $MAXHOURS ];
-		then
-		    kill -15 $PID
-		    sleep 20
-		    
-		    if [ `ps -Ao pid,pcpu | sort -nrk2 | head -10 | grep -c $PID` == 1 ];
-            then                
-                kill -9 $PID
-                echo `date`" - SIGKILLed $PCMD with PID $PID at $NEWPCPU CPU usage and $NEWTIME CPU time... na holleri!" >> killerlog.txt
-            else
-    		    echo `date`" - SIGTERMinated $PCMD with PID $PID at $NEWPCPU CPU usage and $NEWTIME CPU time" >> killerlog.txt
-            fi
-		fi
-	fi
-	
-	sleep 60
-done
+MAXUSE=80
+MAXMINUTES=60
+
+if [ $PCPU -ge $MAXUSE ] && [ $PTIME -ge $MAXMINUTES ]; then
+  sleep 20
+  
+  NEWCOMMAND=`ps -Ao pid,pcpu,bsdtime,comm | sort -nrk2 | head -10 | grep $PID`
+  NEWPCPU=`echo $NEWCOMMAND | awk '{print $2}'`
+  NEWPCPU=${NEWPCPU%%.*}
+  NEWTIME=`echo $NEWCOMMAND | awk '{print $3}'`
+  NEWTIME=${NEWTIME%%:*}
+  
+  if [ $NEWPCPU -ge $MAXUSE ] && [ $NEWTIME -ge $MAXMINUTES ]; then
+    kill -15 $PID
+    sleep 20
+    
+    if [ `ps -Ao pid,pcpu | sort -nrk2 | head -10 | grep -c $PID` == 1 ]; then
+      kill -9 $PID
+      echo `date`" - SIGKILLed $PCMD with PID $PID at $NEWPCPU CPU usage and $NEWTIME CPU time... na holleri!"
+    else
+      echo `date`" - SIGTERMinated $PCMD with PID $PID at $NEWPCPU CPU usage and $NEWTIME CPU time"
+    fi
+  fi
+fi

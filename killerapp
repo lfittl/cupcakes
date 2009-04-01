@@ -2,7 +2,7 @@
 
 while true
 do
-    COMMAND=`ps -Aco pid,pcpu,time,comm | sort -nrk2 | head -1`
+    COMMAND=`ps -Ao pid,pcpu,bsdtime,comm | sort -nrk2 | head -1`
     PID=`echo $COMMAND | awk '{print $1}'`
     PCPU=`echo $COMMAND | awk '{print $2}'`
     PCPU=${PCPU%%.*}
@@ -17,7 +17,7 @@ do
 	then
 	    sleep 20
 	
-        NEWCOMMAND=`ps -Aco pid,pcpu,time,comm | sort -nrk2 | head -10 | grep $PID`
+        NEWCOMMAND=`ps -Ao pid,pcpu,bsdtime,comm | sort -nrk2 | head -10 | grep $PID`
 		NEWPCPU=`echo $NEWCOMMAND | awk '{print $2}'`
 		NEWPCPU=${NEWPCPU%%.*}
 		NEWTIME=`echo $NEWCOMMAND | awk '{print $3}'`
@@ -28,7 +28,7 @@ do
 		    kill -15 $PID
 		    sleep 20
 		    
-		    if [ `ps -Aco pid,pcpu | sort -nrk2 | head -10 | grep -c $PID` == 1 ];
+		    if [ `ps -Ao pid,pcpu | sort -nrk2 | head -10 | grep -c $PID` == 1 ];
             then                
                 kill -9 $PID
                 echo `date`" - SIGKILLed $PCMD with PID $PID at $NEWPCPU CPU usage and $NEWTIME CPU time... na holleri!" >> killerlog.txt
